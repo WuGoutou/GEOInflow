@@ -1,20 +1,20 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import {
-  mkdtemp,
-  mkdir,
-  readFile,
-  writeFile,
-  copyFile,
-  stat,
-  access,
-  rm,
-  chmod,
-  readdir,
-} from 'node:fs/promises';
-import path from 'node:path';
-import os from 'node:os';
 import { spawn, spawnSync } from 'node:child_process';
+import {
+  access,
+  chmod,
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 
 test('default Docker metadata covers the immutable release register and UI baseline', async () => {
@@ -114,6 +114,47 @@ test('help has no configuration or Docker side effects', async t => {
   assert.equal(run(['--help']).status, 0);
   await assert.rejects(access(calls));
   await assert.rejects(access(path.join(root, '.env')));
+});
+
+test('insufficient Docker memory stops before configuration, build or service changes', async t => {
+  const { root, calls, run } = await installation(t, { DEPLOY_TEST_MEMORY_BYTES: '4294967296' });
+  const result = run();
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /6 GiB/);
+  await assert.rejects(access(path.join(root, '.env')));
+  assert.doesNotMatch(await readFile(calls, 'utf8'), /build app| up | stop /);
+});
+
+test('resource check accepts the build floor without creating configuration or building', async t => {
+  const { root, calls, run } = await installation(t, { DEPLOY_TEST_MEMORY_BYTES: '6442450944' });
+  const result = run(['--check']);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /6 GiB/);
+  await assert.rejects(access(path.join(root, '.env')));
+  await assert.rejects(access(path.join(root, '.local')));
+  assert.match(await readFile(calls, 'utf8'), /info --format/);
+  assert.doesNotMatch(await readFile(calls, 'utf8'), /build app| up | stop /);
+});
+
+for (const memory of ['', 'unknown', '0', '-1', '8589934592extra']) {
+  test(`unknown Docker memory (${JSON.stringify(memory)}) stops before deployment`, async t => {
+    const { root, calls, run } = await installation(t, { DEPLOY_TEST_MEMORY_BYTES: memory });
+    const result = run();
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Docker/);
+    await assert.rejects(access(path.join(root, '.env')));
+    assert.doesNotMatch(await readFile(calls, 'utf8'), /build app| up | stop /);
+  });
+}
+
+test('low-memory upgrade preserves existing credentials and keeps existing services running', async t => {
+  const { root, calls, run } = await existingInstallation(t, {
+    DEPLOY_TEST_MEMORY_BYTES: '2147483648',
+  });
+  const config = await readFile(path.join(root, '.env'));
+  assert.equal(run().status, 1);
+  assert.deepEqual(await readFile(path.join(root, '.env')), config);
+  assert.doesNotMatch(await readFile(calls, 'utf8'), /build app| up | stop /);
 });
 
 test('lost configuration also protects project names previously supplied by .env', async t => {
