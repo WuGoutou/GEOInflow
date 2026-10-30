@@ -20,6 +20,7 @@ db_container=${DEPLOY_TEST_DB_CONTAINER:-}
 cache_container=${DEPLOY_TEST_CACHE_CONTAINER:-}
 candidate=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 case "$*" in
+  'info --format {{.MemTotal}}') printf '%s\n' "${DEPLOY_TEST_MEMORY_BYTES-8589934592}" ;;
   'compose version'|info|'compose -f docker-compose.liekan.yml config --quiet') exit 0 ;;
   'volume ls --format {{.Name}}')
     if [ "${DEPLOY_TEST_VOLUME_EXISTS:-1}" = 0 ]; then printf '%s\n' "${DEPLOY_TEST_VOLUME_NAME:-${compose_project}_liekan-data}"; fi ;;

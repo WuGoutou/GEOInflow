@@ -2,11 +2,14 @@
 set -eu
 
 if [ "${1:-}" = '--help' ]; then
-  printf '%s\n' '用法：sh scripts/liekan-deploy.sh' '需要 Docker 和 Docker Compose。首次生成私有配置，构建并启动GEOInflow；再次运行保留配置与数据。'
+  printf '%s\n' '用法：sh scripts/liekan-deploy.sh [--check]' '需要 Docker 和 Docker Compose，源码构建要求 Docker 至少配置 6 GiB 内存，建议 8 GiB 或以上并预留空闲内存。' '首次生成私有配置，构建并启动GEOInflow；再次运行保留配置与数据。--check 只检查 Docker 和构建内存门槛。'
   exit 0
 fi
-if [ "$#" -ne 0 ]; then
-  printf '%s\n' '用法：sh scripts/liekan-deploy.sh' >&2
+check_only=0
+if [ "$#" -eq 1 ] && [ "$1" = '--check' ]; then
+  check_only=1
+elif [ "$#" -ne 0 ]; then
+  printf '%s\n' '用法：sh scripts/liekan-deploy.sh [--check]' >&2
   exit 1
 fi
 cd "$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
@@ -18,6 +21,20 @@ if ! docker info >/dev/null 2>&1; then
   printf '%s\n' '无法连接 Docker，请确认服务已启动，当前用户有访问权限。' >&2
   exit 1
 fi
+# MemTotal is reported by the Docker daemon, including a remote daemon or Desktop VM.
+# The 3 GiB V8 heap excludes native allocations, build workers and the operating system.
+docker_memory=$(docker info --format '{{.MemTotal}}' 2>/dev/null || :)
+case "$docker_memory" in
+  ''|*[!0-9]*)
+    printf '%s\n' '无法确认 Docker 内存，部署已停止。请检查 docker info --format '\''{{.MemTotal}}'\'' 后重试。' >&2
+    exit 1 ;;
+esac
+if [ "${#docker_memory}" -gt 15 ] || [ "$docker_memory" -lt 6442450944 ]; then
+  printf '%s\n' 'Docker 源码构建至少需要配置 6 GiB 内存，建议 8 GiB 或以上。请增加服务器或 Docker 虚拟机内存，或在独立构建机生成镜像后部署。现有服务与配置保持原状。' >&2
+  exit 1
+fi
+printf '%s\n' 'Docker 构建内存门槛检查通过（至少 6 GiB）。请为构建预留空闲内存，已有服务也会消耗资源。'
+if [ "$check_only" -eq 1 ]; then exit 0; fi
 umask 077
 mkdir -p .local
 deployment_lock=.local/liekan-deploy.lock
