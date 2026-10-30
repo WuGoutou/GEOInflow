@@ -1,6 +1,6 @@
 # GEOInflow
 
-**English** | [简体中文](README.zh-CN.md)
+**English** | [简体中文](README.zh-CN.md) | [日本語](README.ja.md)
 
 Self-hosted web and AI crawler analytics for Generative Engine Optimization (GEO).
 

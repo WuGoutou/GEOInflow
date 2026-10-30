@@ -1,6 +1,6 @@
 # GEOInflow
 
-[English](README.md) | **简体中文**
+[English](README.md) | **简体中文** | [日本語](README.ja.md)
 
 面向 GEO 的自托管网站与 AI 爬虫分析系统。
 
