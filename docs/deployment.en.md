@@ -13,7 +13,15 @@ This guide uses Docker Compose on a single host. See the [local deployment detai
 - Network access to container images, Node dependencies, and geographic database download sources.
 - Sufficient memory and disk space for Docker, builds, PostgreSQL, and the application.
 
-The image pins Node.js 22.23.4 and pnpm 12.3.4. Docker builds configure a Node heap of 3072 MiB; native component builds, the Docker VM, and other services also need memory. Runtime capacity depends on actual log volume, retention, concurrency, and background builds. Measure capacity using your own data.
+The image pins Node.js 22.23.4 and pnpm 12.3.4. Source deployment requires at least **6 GiB total Docker memory**; **8 GiB or more and at least 2 CPUs** are recommended, with free memory reserved for compilation. For Docker Desktop, check the VM allocation. For remote Docker, check the daemon host. The script checks daemon-reported memory before creating configuration, building, or stopping existing services.
+
+```sh
+sh scripts/liekan-deploy.sh --check
+```
+
+This read-only command checks Docker connectivity and the build memory floor. The 6 GiB floor reserves headroom beyond the 3072 MiB Node heap. Other services, native allocations, and compilation peaks still require monitoring; passing this check does not establish sufficient free memory. For a small server, build an image on a separate machine and deploy that same revision to the application and both workers. Measure runtime capacity with your actual log volume, retention, concurrency, and background computation. The memory floor applies to this script's source-build path.
+
+If the host becomes unresponsive or a build exits with code 137, inspect host/Docker memory, disk space, and system OOM logs. On Linux, use `free -h`, `df -h`, and `journalctl -k --since "30 minutes ago"`. Remove credentials and personal information before sharing logs.
 
 New installations use PostgreSQL 16 and Redis 7.4. Existing PostgreSQL 15 instances retain version 15. Changing the database major version requires a separate migration and recovery plan.
 
