@@ -1066,6 +1066,14 @@ export const operations = {
     ],
     hasBody: false,
   },
+  getLiekanContributors: {
+    operationId: 'getLiekanContributors',
+    method: 'get',
+    path: '/api/liekan/contributors',
+    pathParams: [],
+    queryParams: [],
+    hasBody: false,
+  },
   getLiekanFeatureAnalytics: {
     operationId: 'getLiekanFeatureAnalytics',
     method: 'get',
@@ -1206,6 +1214,69 @@ export const operations = {
     path: '/api/liekan/links/{linkId}/sources',
     pathParams: ['linkId'],
     queryParams: ['startAt', 'endAt', 'timezone', 'page'],
+    hasBody: false,
+  },
+  getLiekanLogCount: {
+    operationId: 'getLiekanLogCount',
+    method: 'get',
+    path: '/api/liekan/websites/{websiteId}/log-count',
+    pathParams: ['websiteId'],
+    queryParams: [
+      'startAt',
+      'endAt',
+      'timezone',
+      'page',
+      'cursor',
+      'seek',
+      'filter',
+      'search',
+      'crawlerIdentityScope',
+      'crawlerMetricsVersion',
+      'refresh',
+      'readBoundary',
+    ],
+    hasBody: false,
+  },
+  getLiekanLogEntries: {
+    operationId: 'getLiekanLogEntries',
+    method: 'get',
+    path: '/api/liekan/websites/{websiteId}/log-entries',
+    pathParams: ['websiteId'],
+    queryParams: [
+      'startAt',
+      'endAt',
+      'timezone',
+      'page',
+      'cursor',
+      'seek',
+      'filter',
+      'search',
+      'crawlerIdentityScope',
+      'crawlerMetricsVersion',
+      'refresh',
+      'readBoundary',
+    ],
+    hasBody: false,
+  },
+  getLiekanLogSummary: {
+    operationId: 'getLiekanLogSummary',
+    method: 'get',
+    path: '/api/liekan/websites/{websiteId}/log-summary',
+    pathParams: ['websiteId'],
+    queryParams: [
+      'startAt',
+      'endAt',
+      'timezone',
+      'page',
+      'cursor',
+      'seek',
+      'filter',
+      'search',
+      'crawlerIdentityScope',
+      'crawlerMetricsVersion',
+      'refresh',
+      'readBoundary',
+    ],
     hasBody: false,
   },
   getLiekanPageReport: {
@@ -4774,6 +4845,17 @@ export abstract class GeneratedUmamiClient {
   }
 
   /**
+   * Read public GEOInflow GitHub contributors
+   * `GET /api/liekan/contributors`
+   */
+  getLiekanContributors(
+    input?: OperationInput<'getLiekanContributors'>,
+    options?: RequestOptions,
+  ): Promise<OperationOutput<'getLiekanContributors'>> {
+    return this.execute('getLiekanContributors', input, options);
+  }
+
+  /**
    * 查询 Liekan 明细统计
    * `GET /api/liekan/websites/{websiteId}/analytics`
    */
@@ -4870,6 +4952,39 @@ export abstract class GeneratedUmamiClient {
     options?: RequestOptions,
   ): Promise<OperationOutput<'getLiekanLinkSources'>> {
     return this.execute('getLiekanLinkSources', input, options);
+  }
+
+  /**
+   * Read private log count independently
+   * `GET /api/liekan/websites/{websiteId}/log-count`
+   */
+  getLiekanLogCount(
+    input: OperationInput<'getLiekanLogCount'>,
+    options?: RequestOptions,
+  ): Promise<OperationOutput<'getLiekanLogCount'>> {
+    return this.execute('getLiekanLogCount', input, options);
+  }
+
+  /**
+   * Read private log entries independently
+   * `GET /api/liekan/websites/{websiteId}/log-entries`
+   */
+  getLiekanLogEntries(
+    input: OperationInput<'getLiekanLogEntries'>,
+    options?: RequestOptions,
+  ): Promise<OperationOutput<'getLiekanLogEntries'>> {
+    return this.execute('getLiekanLogEntries', input, options);
+  }
+
+  /**
+   * Read private log summary independently
+   * `GET /api/liekan/websites/{websiteId}/log-summary`
+   */
+  getLiekanLogSummary(
+    input: OperationInput<'getLiekanLogSummary'>,
+    options?: RequestOptions,
+  ): Promise<OperationOutput<'getLiekanLogSummary'>> {
+    return this.execute('getLiekanLogSummary', input, options);
   }
 
   /**
